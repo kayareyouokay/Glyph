@@ -22,7 +22,32 @@ def get_pixels(img):
     return pixels
 
 
+def to_brightness(r, g, b, method='average'):
+    if method == 'average':
+        return (r + g + b) / 3
+    elif method == 'minmax':
+        return (max(r, g, b) + min(r, g, b)) / 2
+    elif method == 'luminosity':
+        # magic number from the luminosity formula
+        return 0.21 * r + 0.72 * g + 0.07 * b
+    return (r + g + b) / 3
+
+
+def to_ascii(brightness):
+    idx = int(brightness / 255 * (len(ASCII_CHARS) - 1))
+    return ASCII_CHARS[idx]
+
+
+def render(pixels):
+    for row in pixels:
+        line = ''
+        for (r, g, b) in row:
+            b_val = to_brightness(r, g, b)
+            line += to_ascii(b_val)
+        print(line)
+
+
 if __name__ == '__main__':
     img = load_image(sys.argv[1])
     pixels = get_pixels(img)
-    print(pixels[0][0])
+    render(pixels)
