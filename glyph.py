@@ -43,7 +43,8 @@ def render(pixels):
         line = ''
         for (r, g, b) in row:
             b_val = to_brightness(r, g, b)
-            line += to_ascii(b_val)
+            # triple each char to fix aspect ratio — terminals are ~2:1 tall
+            line += to_ascii(b_val) * 3
         print(line)
 
 
