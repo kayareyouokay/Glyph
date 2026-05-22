@@ -18,6 +18,7 @@ def resize_image(img, target_width):
 
 
 def get_pixels(img):
+    # pillow loads top-left origin, iterate rows first
     pixels = []
     for y in range(img.height):
         row = []
