@@ -12,7 +12,6 @@ def load_image(path):
 
 
 def resize_image(img, target_width):
-    # keep aspect ratio — divide height by 2 since chars are ~2x taller than wide
     ratio = img.height / img.width
     new_height = int(target_width * ratio / 2)
     return img.resize((target_width, new_height))
@@ -31,6 +30,11 @@ def get_pixels(img):
 def to_brightness(r, g, b, method='average'):
     if method == 'average':
         return (r + g + b) / 3
+    elif method == 'minmax':
+        return (max(r, g, b) + min(r, g, b)) / 2
+    elif method == 'luminosity':
+        # magic number from the luminosity formula
+        return 0.21 * r + 0.72 * g + 0.07 * b
     return (r + g + b) / 3
 
 
@@ -39,11 +43,11 @@ def to_ascii(brightness):
     return ASCII_CHARS[idx]
 
 
-def render(pixels):
+def render(pixels, method='average'):
     for row in pixels:
         line = ''
         for (r, g, b) in row:
-            b_val = to_brightness(r, g, b)
+            b_val = to_brightness(r, g, b, method)
             line += to_ascii(b_val) * 3
         print(line)
 
@@ -51,10 +55,11 @@ def render(pixels):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='convert image to ascii art')
     parser.add_argument('image', help='path to image')
-    parser.add_argument('--width', type=int, default=120, help='output width in chars')
+    parser.add_argument('--width', type=int, default=120)
+    parser.add_argument('--method', choices=['average', 'minmax', 'luminosity'], default='average')
     args = parser.parse_args()
 
     img = load_image(args.image)
     img = resize_image(img, args.width)
     pixels = get_pixels(img)
-    render(pixels)
+    render(pixels, args.method)
