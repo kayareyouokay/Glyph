@@ -1,4 +1,4 @@
-import sys
+import argparse
 from PIL import Image
 
 
@@ -11,8 +11,14 @@ def load_image(path):
     return img
 
 
+def resize_image(img, target_width):
+    # keep aspect ratio — divide height by 2 since chars are ~2x taller than wide
+    ratio = img.height / img.width
+    new_height = int(target_width * ratio / 2)
+    return img.resize((target_width, new_height))
+
+
 def get_pixels(img):
-    # pillow loads top-left origin, iterate rows first
     pixels = []
     for y in range(img.height):
         row = []
@@ -25,11 +31,6 @@ def get_pixels(img):
 def to_brightness(r, g, b, method='average'):
     if method == 'average':
         return (r + g + b) / 3
-    elif method == 'minmax':
-        return (max(r, g, b) + min(r, g, b)) / 2
-    elif method == 'luminosity':
-        # magic number from the luminosity formula
-        return 0.21 * r + 0.72 * g + 0.07 * b
     return (r + g + b) / 3
 
 
@@ -43,12 +44,17 @@ def render(pixels):
         line = ''
         for (r, g, b) in row:
             b_val = to_brightness(r, g, b)
-            # triple each char to fix aspect ratio — terminals are ~2:1 tall
             line += to_ascii(b_val) * 3
         print(line)
 
 
 if __name__ == '__main__':
-    img = load_image(sys.argv[1])
+    parser = argparse.ArgumentParser(description='convert image to ascii art')
+    parser.add_argument('image', help='path to image')
+    parser.add_argument('--width', type=int, default=120, help='output width in chars')
+    args = parser.parse_args()
+
+    img = load_image(args.image)
+    img = resize_image(img, args.width)
     pixels = get_pixels(img)
     render(pixels)
